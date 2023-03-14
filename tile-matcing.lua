@@ -293,7 +293,7 @@ function createGame()
             self:setGameState( "wait" )
             -- ждем ввода от пользователя
             local input = io.read()
-            local x, y, dir = input:math( "^m%s+%d+%s+%d+%w" )
+            local x, y, dir = input:math( "^m%s+(%d+)%s+(%d+)+%s+(%w)" )
 
             if input == "q" then
                 break
