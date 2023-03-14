@@ -3,14 +3,15 @@ local GAME_RULES = {
     count_colums = 10,
     count_colors = { 'A', 'B', 'C', 'D', 'E', 'F' },
     min_group_size = 3,
-    states = { "move", "mix", "error", "wait" },
+    states_key = { "move", "mix", "error", "wait" },
+    states = {},
 }
 
 local EMPTY_CELL = "-"
 
 -- revers states
 -- GAME_RULES.states[ "wait" ] = 1
-for k, v in pairs( GAME_RULES.states ) do
+for k, v in pairs( GAME_RULES.states_key ) do
     GAME_RULES.states[ v ] = k
 end
 
@@ -50,7 +51,8 @@ function createGame()
             io.write( "-", " \t" )
         end 
         io.write( "\n" )
-        for row = 0, #self.board do
+        local count = #self.board
+        for row = 0, count do
             io.write( row, "\t | \t" )
             
             for colum = 0, #self.board[ row ] do
@@ -63,7 +65,7 @@ function createGame()
     end
 
     function GAME:isCombo( row, colum, value )
-        return self:isVerticalCombox( row, colum, value ) or self:isHorizontalCombo( row, colum, value ) or false
+        return self:isVerticalCombo( row, colum, value ) or self:isHorizontalCombo( row, colum, value ) or false
     end
 
     function GAME:INIT_DEBUG()
@@ -85,7 +87,7 @@ function createGame()
         return self
     end
 
-    function GAME:isVerticalCombox( row, colum, fake_value, debug )
+    function GAME:isVerticalCombo( row, colum, fake_value, debug )
         local value = fake_value or self:getFieldItem( row, colum )
         local combo_count = 1
         local start = row
@@ -195,7 +197,7 @@ function createGame()
 
         local value = self:getFieldItem( row, colum )
         
-        if self:isVerticalCombox( row, colum ) then
+        if self:isVerticalCombo( row, colum ) then
             local start = row
             while self:getFieldItem( start + 1, colum ) == value do
                 start = start + 1
@@ -255,6 +257,10 @@ function createGame()
         local to_value = self:getFieldItem( to[1], to[2] )
         if not from_value or not to_value then return end
 
+        if from[1] == to[1] and from[2] == to[2] then
+            return false
+        end
+
         if math.abs( from[1] - to[1] ) > 1 or math.abs( from[ 2 ] - to[ 2 ] ) > 1 then
             return false
         end
@@ -287,6 +293,7 @@ function createGame()
             self:setGameState( "wait" )
             -- ждем ввода от пользователя
             local input = io.read()
+            local x, y, dir = input:math( "^m%s+%d+%s+%d+%w" )
 
             if input == "q" then
                 break
@@ -294,11 +301,7 @@ function createGame()
             --     self:INIT_DEBUG()
             -- elseif input == "if" then
             --     print( self:isAbilityMove() )
-            elseif #input == 7 then
-                local x = tonumber(input:sub(3, 3))
-                local y = tonumber(input:sub(5, 5))
-                local dir = input:sub(7, 7)
-                -- print( x, y, dir )
+            elseif x and y and dir then
 
                 local to_x, to_y
                 if dir == "l" then
